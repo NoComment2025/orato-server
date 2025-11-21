@@ -1,0 +1,52 @@
+# Config (Whitelist)
+*.properties
+*.yml
+*.yaml
+*.xml
+.env
+.env.*
+
+# Config Exceptions (Allow essentials)
+!src/main/resources/application-example.yml
+
+# Build
+.gradle/
+build/
+target/
+!gradle/wrapper/gradle-wrapper.jar
+!**/src/main/**/build/
+!**/src/test/**/build/
+
+# IDE
+.idea/
+*.iws
+*.iml
+*.ipr
+out/
+.vscode/
+.apt_generated
+.classpath
+.factorypath
+.project
+.settings
+.springBeans
+bin/
+
+# OS & Logs
+.DS_Store
+Thumbs.db
+*.log
+logs/
+log/
+*.tmp
+*.bak
+*.swp
+
+# Package & AI
+*.jar
+*.war
+*.zip
+*.tar.gz
+!gradle-wrapper.jar
+.claude/
+.serena/
