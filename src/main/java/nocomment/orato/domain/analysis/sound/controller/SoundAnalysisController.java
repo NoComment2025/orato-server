@@ -2,10 +2,9 @@
 package nocomment.orato.domain.analysis.sound.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import nocomment.orato.domain.analysis.sound.Dto.RequestDataDto;
-import nocomment.orato.domain.analysis.sound.Dto.Status;
+import nocomment.orato.domain.analysis.dto.Status;
 import nocomment.orato.domain.analysis.sound.entity.SoundAnalysis;
 import nocomment.orato.domain.analysis.sound.repository.SoundAnalysisRepository;
 import nocomment.orato.domain.analysis.sound.service.SoundAnalysisService;

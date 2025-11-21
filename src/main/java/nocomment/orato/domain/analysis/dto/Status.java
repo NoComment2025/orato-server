@@ -1,4 +1,4 @@
-package nocomment.orato.domain.analysis.sound.Dto;
+package nocomment.orato.domain.analysis.dto;
 
 
 import lombok.Getter;
