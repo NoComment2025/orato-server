@@ -60,20 +60,9 @@ public class SoundAnalysisController {
         String response_uuid = (String) response.get("uuid");
         String response_feedbackMd = (String) response.get("feedback_md");
 
-        // 4) DB 저장
-        SoundAnalysis sa = new SoundAnalysis(
-                topic,
-                tags,
-                response_feedbackMd,
-                hasTimeLimit,
-                response_uuid
-        );
 
-        if (Boolean.TRUE.equals(hasTimeLimit)) {
-            sa.setAnalyzeTime(data.getTimeLimit());
-        }
-
-        soundAnalysisRepository.save(sa);
+        // 4. DB 저장
+        soundAnalysisService.save(data, response_uuid, response_feedbackMd);
 
         // 5) 응답 반환
         return ResponseEntity.ok(new Status(200));

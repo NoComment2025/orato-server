@@ -1,6 +1,8 @@
 package nocomment.orato.domain.analysis.video.service;
 
 import lombok.RequiredArgsConstructor;
+import nocomment.orato.domain.analysis.video.Dto.RequestDataDto;
+import nocomment.orato.domain.analysis.video.entity.VideoAnalysis;
 import nocomment.orato.domain.analysis.video.repository.VideoAnalysisRepository;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.core.io.ByteArrayResource;
@@ -72,5 +74,20 @@ public class VideoAnalysisService {
             // 예외 처리
             throw new RuntimeException("Failed to assess pronunciation: " + e.getMessage(), e);
         }
+    }
+
+    public void save(RequestDataDto data, String feedbackMd){
+        VideoAnalysis va = new VideoAnalysis(
+                data.getTopic(),
+                data.getTag(),
+                feedbackMd,
+                data.getHasTimeLimit()
+        );
+
+        if (data.getHasTimeLimit()) {
+            va.setAnalyzeTime(data.getTimeLimit());
+        }
+
+        videoAnalysisRepository.save(va);
     }
 }

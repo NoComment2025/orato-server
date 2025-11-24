@@ -48,31 +48,14 @@ public class VideoAnalysisController {
                     .body(new Status(400, "JSON 파싱 오류"));
         }
 
-        // 2) DTO 데이터 파싱
-        String topic = data.getTopic();
-        String tags = data.getTag();
-        Boolean hasTimeLimit = data.getHasTimeLimit();
-
         // 3) 사운드 분석 요청
         System.out.println("요청보냈음");
         Map<String, Object> response = videoAnalysisService.assessPronunciation(file);
 
-        String response_uuid = (String) response.get("uuid");
         String response_feedbackMd = (String) response.get("feedback_md");
 
         // 4) DB 저장
-        VideoAnalysis va = new VideoAnalysis(
-                topic,
-                tags,
-                response_feedbackMd,
-                hasTimeLimit
-        );
-
-        if (Boolean.TRUE.equals(hasTimeLimit)) {
-            va.setAnalyzeTime(data.getTimeLimit());
-        }
-
-        videoAnalysisRepository.save(va);
+        videoAnalysisService.save(data, response_feedbackMd);
 
         // 5) 응답 반환
         return ResponseEntity.ok(new Status(200));

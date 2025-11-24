@@ -1,11 +1,11 @@
 package nocomment.orato.domain.analysis.sound.service;
 
 import lombok.RequiredArgsConstructor;
+import nocomment.orato.domain.analysis.sound.Dto.RequestDataDto;
 import nocomment.orato.domain.analysis.sound.entity.SoundAnalysis;
 import nocomment.orato.domain.analysis.sound.repository.SoundAnalysisRepository;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.core.io.ByteArrayResource;
-import org.springframework.core.io.FileSystemResource;
 import org.springframework.http.*;
 import org.springframework.stereotype.Service;
 import org.springframework.util.LinkedMultiValueMap;
@@ -74,5 +74,21 @@ public class SoundAnalysisService {
             // 예외 처리
             throw new RuntimeException("Failed to assess pronunciation: " + e.getMessage(), e);
         }
+    }
+
+    public void save(RequestDataDto data, String uuid, String feedbackMd) {
+        SoundAnalysis sa = new SoundAnalysis(
+                data.getTopic(),
+                data.getTag(),
+                feedbackMd,
+                data.getHasTimeLimit(),
+                uuid
+        );
+
+        if (data.getHasTimeLimit()) {
+            sa.setAnalyzeTime(data.getTimeLimit());
+        }
+
+        soundAnalysisRepository.save(sa);
     }
 }
