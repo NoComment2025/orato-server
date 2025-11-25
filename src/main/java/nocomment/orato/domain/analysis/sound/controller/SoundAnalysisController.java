@@ -2,6 +2,14 @@
 package nocomment.orato.domain.analysis.sound.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import nocomment.orato.domain.analysis.sound.Dto.RequestDataDto;
 import nocomment.orato.domain.analysis.dto.Status;
@@ -18,19 +26,33 @@ import java.util.Map;
 import java.util.Optional;
 @RestController
 @RequiredArgsConstructor
+@Tag(name = "Sound Analysis", description = "음성 분석 API")
 public class SoundAnalysisController {
 
     private final SoundAnalysisRepository soundAnalysisRepository;
     private final SoundAnalysisService soundAnalysisService;
     private final ObjectMapper objectMapper = new ObjectMapper();
 
+    @Operation(
+            summary = "음성 분석 요청",
+            description = "음성 파일과 메타데이터를 업로드하여 발음 분석을 수행합니다. JWT 인증이 필요합니다.",
+            security = @SecurityRequirement(name = "JWT")
+    )
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "분석 성공",
+                    content = @Content(schema = @Schema(implementation = Status.class))),
+            @ApiResponse(responseCode = "400", description = "잘못된 요청 (data 파트 누락 또는 JSON 파싱 오류)"),
+            @ApiResponse(responseCode = "401", description = "인증 실패")
+    })
     @PostMapping(value = "/analyze/sound", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<Status> uploadSound(
+            @Parameter(description = "분석할 음성 파일")
             @RequestPart(value = "file", required = false) MultipartFile file,
+            @Parameter(description = "분석 메타데이터 (JSON 형식)", schema = @Schema(implementation = RequestDataDto.class))
             @RequestPart(value = "data", required = false) String dataJson
     ) {
 
-        System.out.println("요청들어옴");
+        System.out.println("Sound Call came");
 
         // 1) JSON → DTO 변환
         RequestDataDto data;
@@ -69,8 +91,21 @@ public class SoundAnalysisController {
     }
 
 
+    @Operation(
+            summary = "음성 분석 결과 조회",
+            description = "ID를 통해 저장된 음성 분석 결과를 조회합니다. JWT 인증이 필요합니다.",
+            security = @SecurityRequirement(name = "JWT")
+    )
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "조회 성공",
+                    content = @Content(schema = @Schema(implementation = SoundAnalysis.class))),
+            @ApiResponse(responseCode = "404", description = "분석 결과를 찾을 수 없음"),
+            @ApiResponse(responseCode = "401", description = "인증 실패")
+    })
     @GetMapping("/analyze/sound/{id}")
-    public ResponseEntity<SoundAnalysis> fetchRecords(@PathVariable Long id) {
+    public ResponseEntity<SoundAnalysis> fetchRecords(
+            @Parameter(description = "조회할 분석 결과 ID", required = true)
+            @PathVariable Long id) {
 
         Optional<SoundAnalysis> sa = soundAnalysisRepository.findById(id);
         if (sa.isEmpty()) {
