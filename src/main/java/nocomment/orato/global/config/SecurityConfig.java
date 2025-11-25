@@ -2,6 +2,7 @@ package nocomment.orato.global.config;
 
 import jakarta.servlet.http.HttpServletRequest;
 import nocomment.orato.domain.auth.service.CustomOAuth2UserService;
+import nocomment.orato.domain.auth.service.CustomOidcUserService;
 import nocomment.orato.global.jwt.JWTFilter;
 import nocomment.orato.global.jwt.JWTUtil;
 import nocomment.orato.global.oauth2.CustomSuccessHandler;
@@ -23,11 +24,13 @@ import java.util.Collections;
 public class SecurityConfig {
 
     private final CustomOAuth2UserService customOAuth2UserService;
+    private final CustomOidcUserService customOidcUserService;
     private final CustomSuccessHandler customSuccessHandler;
     private final JWTUtil jwtUtil;
 
-    public SecurityConfig(CustomOAuth2UserService customOAuth2UserService, CustomSuccessHandler customSuccessHandler, JWTUtil jwtUtil) {
+    public SecurityConfig(CustomOAuth2UserService customOAuth2UserService, CustomOidcUserService customOidcUserService, CustomSuccessHandler customSuccessHandler, JWTUtil jwtUtil) {
         this.customOAuth2UserService = customOAuth2UserService;
+        this.customOidcUserService = customOidcUserService;
         this.customSuccessHandler = customSuccessHandler;
         this.jwtUtil = jwtUtil;
     }
@@ -79,7 +82,8 @@ public class SecurityConfig {
         http
                 .oauth2Login((oauth2) -> oauth2
                                 .userInfoEndpoint((userInfoEndpointConfig) -> userInfoEndpointConfig
-                                        .userService(customOAuth2UserService)) // 커스텀 OAuth2 UserService 설정
+                                        .userService(customOAuth2UserService) // 커스텀 OAuth2 UserService 설정
+                                        .oidcUserService(customOidcUserService)) // 커스텀 OIDC UserService 설정 (Google용)
                                 .successHandler(customSuccessHandler) // 커스텀 성공 핸들러 설정
                         // .redirectionEndpoint() // OAuth2 로그인 리디렉션 엔드포인트 설정, 기본값이 잘 작동하면 생략 가능
                         // .baseUri("/login/oauth2/code/*") // 예를 들어 구글 콜백이 /login/oauth2/code/google 인 경우
