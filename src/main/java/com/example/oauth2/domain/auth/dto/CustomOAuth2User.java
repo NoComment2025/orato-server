@@ -1,4 +1,4 @@
-package com.example.oauth2.dto;
+package com.example.oauth2.domain.auth.dto;
 
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.oauth2.core.user.OAuth2User;

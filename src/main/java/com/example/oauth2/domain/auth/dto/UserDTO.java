@@ -1,4 +1,4 @@
-package com.example.oauth2.dto;
+package com.example.oauth2.domain.auth.dto;
 
 import lombok.Getter;
 import lombok.Setter;

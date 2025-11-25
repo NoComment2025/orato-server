@@ -1,9 +1,9 @@
-package com.example.oauth2.config;
+package com.example.oauth2.global.config;
 
-import com.example.oauth2.jwt.JWTFilter;
-import com.example.oauth2.jwt.JWTUtil;
-import com.example.oauth2.oauth2.CustomSuccessHandler;
-import com.example.oauth2.service.CustomOAuth2UserService;
+import com.example.oauth2.global.jwt.JWTFilter;
+import com.example.oauth2.global.jwt.JWTUtil;
+import com.example.oauth2.global.oauth2.CustomSuccessHandler;
+import com.example.oauth2.domain.auth.service.CustomOAuth2UserService;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;

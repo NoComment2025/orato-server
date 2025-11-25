@@ -1,8 +1,9 @@
-package com.example.oauth2.service;
+package com.example.oauth2.domain.auth.service;
 
-import com.example.oauth2.dto.*;
-import com.example.oauth2.entity.UserEntity;
-import com.example.oauth2.repository.UserRepository;
+import com.example.oauth2.domain.auth.controller.dto.*;
+import com.example.oauth2.domain.auth.dto.*;
+import com.example.oauth2.domain.auth.entity.UserEntity;
+import com.example.oauth2.domain.auth.repository.UserRepository;
 import org.springframework.security.oauth2.client.userinfo.DefaultOAuth2UserService;
 import org.springframework.security.oauth2.client.userinfo.OAuth2UserRequest;
 import org.springframework.security.oauth2.core.OAuth2AuthenticationException;

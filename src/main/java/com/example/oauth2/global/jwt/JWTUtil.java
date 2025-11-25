@@ -1,4 +1,4 @@
-package com.example.oauth2.jwt;
+package com.example.oauth2.global.jwt;
 
 import io.jsonwebtoken.Jwts;
 import org.springframework.beans.factory.annotation.Value;

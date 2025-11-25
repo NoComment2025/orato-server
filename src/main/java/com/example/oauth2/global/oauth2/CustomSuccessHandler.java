@@ -1,7 +1,7 @@
-package com.example.oauth2.oauth2;
+package com.example.oauth2.global.oauth2;
 
-import com.example.oauth2.dto.CustomOAuth2User;
-import com.example.oauth2.jwt.JWTUtil;
+import com.example.oauth2.domain.auth.dto.CustomOAuth2User;
+import com.example.oauth2.global.jwt.JWTUtil;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
