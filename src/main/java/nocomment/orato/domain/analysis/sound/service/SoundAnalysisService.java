@@ -26,7 +26,7 @@ public class SoundAnalysisService {
     private final SoundAnalysisRepository soundAnalysisRepository;
 
     private final WebClient client = WebClient.builder()
-            .baseUrl("http://127.0.0.1:8001")
+            .baseUrl("http://127.0.0.1:8000")
             .build();
 
     public Map<String, Object> assessPronunciation(MultipartFile file) {
@@ -35,7 +35,7 @@ public class SoundAnalysisService {
             RestTemplate restTemplate = new RestTemplate();
             
             // 외부 API URL 설정
-            String url = "http://localhost:8001/sound/analyze";
+            String url = "http://localhost:8000/sound/analyze";
 
             // 3단계: HTTP 요청 헤더 생성
             HttpHeaders headers = new HttpHeaders();
@@ -61,7 +61,7 @@ public class SoundAnalysisService {
             
             // POST 요청 전송 및 응답 받기
             Map<String, Object> response = client.post()
-                    .uri("/assess_pronunciation_md")
+                    .uri("/sound/analyze")
                     .contentType(MediaType.MULTIPART_FORM_DATA)
                     .body(BodyInserters.fromMultipartData(body))
                     .retrieve()

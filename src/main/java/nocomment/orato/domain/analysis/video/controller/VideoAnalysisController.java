@@ -3,8 +3,8 @@ package nocomment.orato.domain.analysis.video.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
+import nocomment.orato.domain.analysis.dto.Status;
 import nocomment.orato.domain.analysis.video.Dto.RequestDataDto;
-import nocomment.orato.domain.analysis.video.Dto.Status;
 import nocomment.orato.domain.analysis.video.entity.VideoAnalysis;
 import nocomment.orato.domain.analysis.video.repository.VideoAnalysisRepository;
 import nocomment.orato.domain.analysis.video.service.VideoAnalysisService;
@@ -25,8 +25,8 @@ public class VideoAnalysisController {
     private final ObjectMapper objectMapper = new ObjectMapper();
 
     @PostMapping(value = "/analyze/video", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-    public ResponseEntity<Status> uploaVideo(
-            @RequestPart(value = "file", required = false) MultipartFile file,
+    public ResponseEntity<Status> uploadVideo(
+            @RequestPart(value = "file", required = true) MultipartFile file,
             @RequestPart(value = "data", required = false) String dataJson
     ) {
 

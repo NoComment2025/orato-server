@@ -27,7 +27,7 @@ public class VideoAnalysisService {
     private final VideoAnalysisRepository videoAnalysisRepository;
 
     private final WebClient client = WebClient.builder()
-            .baseUrl("http://127.0.0.1:8002")
+            .baseUrl("http://127.0.0.1:8000")
             .build();
 
     public Map<String, Object> assessPronunciation(MultipartFile file) {
@@ -36,7 +36,7 @@ public class VideoAnalysisService {
             RestTemplate restTemplate = new RestTemplate();
             
             // 2단계: 외부 API URL 설정
-            String url = "http://localhost:8002/video/analyze";
+            String url = "http://localhost:8000/video/analyze";
 
             // HTTP 요청 헤더 생성
             HttpHeaders headers = new HttpHeaders();
