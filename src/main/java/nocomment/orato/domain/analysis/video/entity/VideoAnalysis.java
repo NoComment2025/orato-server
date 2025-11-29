@@ -24,17 +24,17 @@ public class VideoAnalysis {
     @Schema(description = "분석 주제", example = "프레젠테이션 발표")
     private String topic;
 
-    @Schema(description = "분석 타입", example = "video")
-    private String type = "video";
-
     @Schema(description = "태그", example = "발음,억양,속도")
-    private String tags;
+    private String tag;
 
     @Schema(description = "시간 제한 여부", example = "true")
     private Boolean hasTimeLimit;
 
     @Schema(description = "분석 소요 시간 (초)", example = "300")
     private int analyzeTime;
+
+    @Schema(description = "사용자 이름", example = "user123")
+    private String username;
 
     @Schema(description = "생성 일시")
     @CreationTimestamp
@@ -49,11 +49,12 @@ public class VideoAnalysis {
     @Column(columnDefinition = "TEXT")
     private String feedbackMd;
 
-    public VideoAnalysis(String topic, String tags, String feedbackMD, Boolean hasTimeLimit) {
+    public VideoAnalysis(String topic, String tags, String feedbackMD, Boolean hasTimeLimit, String username) {
         this.topic = topic;
-        this.tags = tags;
+        this.tag = tags;
         this.feedbackMd = feedbackMD;
         this.hasTimeLimit = hasTimeLimit;
+        this.username = username;
     }
 
 }

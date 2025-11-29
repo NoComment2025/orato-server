@@ -1,6 +1,9 @@
 package nocomment.orato.domain.analysis.sound.service;
 
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
+import nocomment.orato.domain.analysis.record.entity.Record;
+import nocomment.orato.domain.analysis.record.repository.RecordRepository;
 import nocomment.orato.domain.analysis.sound.Dto.RequestDataDto;
 import nocomment.orato.domain.analysis.sound.entity.SoundAnalysis;
 import nocomment.orato.domain.analysis.sound.repository.SoundAnalysisRepository;
@@ -20,13 +23,16 @@ import java.util.Map;
 
 @Service
 @RequiredArgsConstructor
+@Transactional
 public class SoundAnalysisService {
 
     // 음성 분석 데이터를 데이터베이스에 저장하기 위한 Repository
     private final SoundAnalysisRepository soundAnalysisRepository;
+    private final RecordRepository recordRepository;
 
     private final WebClient client = WebClient.builder()
             .baseUrl("http://127.0.0.1:8000")
+//            .baseUrl("http://58.237.36.59:8000")
             .build();
 
     public Map<String, Object> assessPronunciation(MultipartFile file) {
@@ -35,7 +41,9 @@ public class SoundAnalysisService {
             RestTemplate restTemplate = new RestTemplate();
             
             // 외부 API URL 설정
-            String url = "http://localhost:8000/sound/analyze";
+//            String url = "http://localhost:8000/sound/analyze";
+            String url = "http://58.237.36.59:8000/sound/analyze";
+//            String url = "http://58.237.36.59:8000/asssess_pronunciation_md";
 
             // 3단계: HTTP 요청 헤더 생성
             HttpHeaders headers = new HttpHeaders();
@@ -62,6 +70,7 @@ public class SoundAnalysisService {
             // POST 요청 전송 및 응답 받기
             Map<String, Object> response = client.post()
                     .uri("/sound/analyze")
+//                    .uri("/assess_pronunciation_md")
                     .contentType(MediaType.MULTIPART_FORM_DATA)
                     .body(BodyInserters.fromMultipartData(body))
                     .retrieve()
@@ -76,19 +85,26 @@ public class SoundAnalysisService {
         }
     }
 
-    public void save(RequestDataDto data, String uuid, String feedbackMd) {
+    public void save(RequestDataDto data, String uuid, String feedbackMd, String username) {
         SoundAnalysis sa = new SoundAnalysis(
                 data.getTopic(),
                 data.getTag(),
                 feedbackMd,
                 data.getHasTimeLimit(),
-                uuid
+                uuid,
+                username
         );
+
 
         if (data.getHasTimeLimit()) {
             sa.setAnalyzeTime(data.getTimeLimit());
         }
 
-        soundAnalysisRepository.save(sa);
+        SoundAnalysis savedSa = soundAnalysisRepository.save(sa);
+        Long savedId = savedSa.getId();
+
+        Record rec = new Record("sound", data.getTopic(), data.getTag(), savedId, username, feedbackMd);
+        recordRepository.save(rec);
+
     }
 }

@@ -8,6 +8,8 @@ import nocomment.orato.domain.auth.dto.SignUpResponse;
 import nocomment.orato.domain.auth.entity.User;
 import nocomment.orato.domain.auth.repository.UserRepository;
 import nocomment.orato.global.jwt.JWTUtil;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -67,8 +69,12 @@ public class AuthService {
         }
 
         // JWT 토큰 생성 (3시간 유효)
-        String token = jwtUtil.createJwt(user.getUsername(), user.getRole(), 3 * 60 * 60 * 1000L);
+        String token = jwtUtil.createJwt(user.getUsername(), user.getRole(), user.getName(), 3 * 60 * 60 * 1000L);
 
-        return new LoginResponse(token, user.getName(), user.getRole());
+        return new LoginResponse(token, user.getName(), user.getUsername(),user.getEmail());
+    }
+
+    public boolean existsByUsername(String username) {
+        return userRepository.existsByUsername(username);
     }
 }

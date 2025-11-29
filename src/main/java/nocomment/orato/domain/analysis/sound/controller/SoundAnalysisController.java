@@ -16,9 +16,12 @@ import nocomment.orato.domain.analysis.dto.Status;
 import nocomment.orato.domain.analysis.sound.entity.SoundAnalysis;
 import nocomment.orato.domain.analysis.sound.repository.SoundAnalysisRepository;
 import nocomment.orato.domain.analysis.sound.service.SoundAnalysisService;
+import nocomment.orato.domain.auth.dto.CustomOAuth2User;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -82,9 +85,20 @@ public class SoundAnalysisController {
         String response_uuid = (String) response.get("uuid");
         String response_feedbackMd = (String) response.get("feedback_md");
 
+        // 3.5) SecurityContext에서 username 추출
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        String username = null;
+        
+        if (authentication != null && authentication.isAuthenticated()) {
+            Object principal = authentication.getPrincipal();
+            if (principal instanceof CustomOAuth2User) {
+                CustomOAuth2User customOAuth2User = (CustomOAuth2User) principal;
+                username = customOAuth2User.getUsername();
+            }
+        }
 
         // 4. DB 저장
-        soundAnalysisService.save(data, response_uuid, response_feedbackMd);
+        soundAnalysisService.save(data, response_uuid, response_feedbackMd, username);
 
         // 5) 응답 반환
         return ResponseEntity.ok(new Status(200));
@@ -113,6 +127,5 @@ public class SoundAnalysisController {
         }
         return ResponseEntity.status(HttpStatus.OK).body(sa.get());
     }
-
 
 }

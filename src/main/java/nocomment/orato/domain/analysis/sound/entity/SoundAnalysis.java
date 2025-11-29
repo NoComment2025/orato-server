@@ -22,11 +22,8 @@ public class SoundAnalysis {
     @Schema(description = "분석 주제", example = "면접 답변")
     private String topic;
 
-    @Schema(description = "분석 타입", example = "sound")
-    private String type = "sound";
-
     @Schema(description = "태그", example = "발음,명확성")
-    private String tags;
+    private String tag;
 
     @Schema(description = "시간 제한 여부", example = "true")
     private Boolean hasTimeLimit;
@@ -36,6 +33,9 @@ public class SoundAnalysis {
 
     @Schema(description = "고유 UUID", example = "550e8400-e29b-41d4-a716-446655440000")
     private String uuid;
+
+    @Schema(description = "사용자 이름", example = "user123")
+    private String username;
 
     @Schema(description = "생성 일시")
     @CreationTimestamp
@@ -50,12 +50,13 @@ public class SoundAnalysis {
     @Column(columnDefinition = "TEXT")
     private String feedbackMd;
 
-    public SoundAnalysis(String topic, String tags, String feedbackMD, Boolean hasTimeLimit, String uuid) {
+    public SoundAnalysis(String topic, String tags, String feedbackMD, Boolean hasTimeLimit, String uuid, String username) {
         this.topic = topic;
-        this.tags = tags;
+        this.tag = tags;
         this.feedbackMd = feedbackMD;
         this.hasTimeLimit = hasTimeLimit;
         this.uuid = uuid;
+        this.username = username;
     }
 
 }

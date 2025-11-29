@@ -49,7 +49,7 @@ public class SecurityConfig {
                     public CorsConfiguration getCorsConfiguration(HttpServletRequest request) {
                         CorsConfiguration configuration = new CorsConfiguration();
 
-                        configuration.setAllowedOrigins(Collections.singletonList("http://localhost:3000"));
+                        configuration.setAllowedOrigins(Collections.singletonList("http://localhost:5173"));
                         configuration.setAllowedMethods(Collections.singletonList("*"));
                         configuration.setAllowCredentials(true);
                         configuration.setAllowedHeaders(Collections.singletonList("*"));
@@ -96,7 +96,7 @@ public class SecurityConfig {
                         // '/error' 경로도 추가하여 에러 발생 시 리다이렉트 루프를 방지할 수 있습니다.
                         .requestMatchers("/", "/oauth2/**", "/login/oauth2/code/**", "/error", 
                                 "/swagger-ui/**", "/v3/api-docs/**", "/swagger-resources/**",
-                                "/api/auth/signup", "/api/auth/login").permitAll()
+                                "/api/auth/signup", "/api/auth/login", "/auth/**", "records").permitAll()
                         .anyRequest().authenticated()); // 그 외 모든 요청은 인증 필요
 
         // 세션 설정 : STATELESS (JWT를 사용하므로 세션을 사용하지 않음)
