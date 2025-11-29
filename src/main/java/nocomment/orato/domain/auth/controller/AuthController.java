@@ -78,7 +78,6 @@ public class AuthController {
             responseBody.put("status", 200);
 
             Map<String, String> data = new HashMap<>();
-            data.put("access", loginResponse.getToken());
             data.put("name", loginResponse.getName());
             data.put("username", loginResponse.getUsername());
             data.put("email", loginResponse.getEmail());
