@@ -13,6 +13,8 @@ public interface SoundAnalysisRepository extends JpaRepository<SoundAnalysis, Lo
     
     // username으로 페이지네이션 조회
     Page<SoundAnalysis> findByUsername(String username, Pageable pageable);
+
+    Optional<SoundAnalysis> findByIdAndUsername(Long id, String username);
     
     // 전체 페이지네이션 조회
     Page<SoundAnalysis> findAll(Pageable pageable);
