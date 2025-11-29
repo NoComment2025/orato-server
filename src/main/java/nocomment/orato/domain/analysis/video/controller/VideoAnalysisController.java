@@ -115,7 +115,17 @@ public class VideoAnalysisController {
             @Parameter(description = "조회할 분석 결과 ID", required = true)
             @PathVariable Long id) {
 
-        Optional<VideoAnalysis> sa = videoAnalysisRepository.findById(id);
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        if (authentication == null || !authentication.isAuthenticated()) {
+            return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
+        }
+
+        Object principal = authentication.getPrincipal();
+        if (!(principal instanceof CustomOAuth2User customOAuth2User)) {
+            return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
+        }
+
+        Optional<VideoAnalysis> sa = videoAnalysisRepository.findByIdAndUsername(id, customOAuth2User.getUsername());
         if (sa.isEmpty()) {
             return new ResponseEntity<>(HttpStatus.NOT_FOUND);
         }
