@@ -50,7 +50,7 @@ public class SoundAnalysisController {
     @PostMapping(value = "/analyze/sound", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<Status> uploadSound(
             @Parameter(description = "분석할 음성 파일")
-            @RequestPart(value = "file", required = false) MultipartFile file,
+            @RequestPart(value = "file", required = true) MultipartFile file,
             @Parameter(description = "분석 메타데이터 (JSON 형식)", schema = @Schema(implementation = RequestDataDto.class))
             @RequestPart(value = "data", required = false) String dataJson
     ) {
@@ -71,6 +71,11 @@ public class SoundAnalysisController {
             e.printStackTrace();
             return ResponseEntity.status(HttpStatus.BAD_REQUEST)
                     .body(new Status(400, "JSON 파싱 오류"));
+        }
+
+        if (file == null || file.isEmpty()) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                    .body(new Status(400, "file 파트가 비어있습니다."));
         }
 
         // 2) DTO 데이터 파싱
