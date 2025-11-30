@@ -73,6 +73,11 @@ public class VideoAnalysisController {
                     .body(new Status(400, "JSON 파싱 오류"));
         }
 
+        if (file == null || file.isEmpty()) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                    .body(new Status(400, "file 파트가 비어있습니다."));
+        }
+
         // 3) 사운드 분석 요청
         System.out.println("요청보냈음");
         Map<String, Object> response = videoAnalysisService.assessPronunciation(file);
@@ -82,7 +87,7 @@ public class VideoAnalysisController {
         // 3.5) SecurityContext에서 username 추출
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         String username = null;
-        
+        g
         if (authentication != null && authentication.isAuthenticated()) {
             Object principal = authentication.getPrincipal();
             if (principal instanceof CustomOAuth2User) {
