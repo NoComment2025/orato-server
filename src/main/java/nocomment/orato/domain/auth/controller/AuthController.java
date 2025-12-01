@@ -6,7 +6,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
-import jakarta.servlet.http.Cookie;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import nocomment.orato.domain.auth.dto.LoginRequest;
@@ -15,6 +15,7 @@ import nocomment.orato.domain.auth.dto.SignUpRequest;
 import nocomment.orato.domain.auth.dto.SignUpResponse;
 import nocomment.orato.domain.auth.service.AuthService;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseCookie;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -60,18 +61,11 @@ public class AuthController {
 
 
     @PostMapping("/login")
-    public ResponseEntity<?> login(@RequestBody LoginRequest request, HttpServletResponse response) {
+    public ResponseEntity<?> login(@RequestBody LoginRequest request, HttpServletRequest httpRequest, HttpServletResponse response) {
         try {
             LoginResponse loginResponse = authService.login(request);
 
-            // JWT 토큰을 Cookie에 저장
-            Cookie cookie = new Cookie("Authorization", loginResponse.getToken());
-            cookie.setMaxAge(3 * 60 * 60); // 3시간
-            cookie.setPath("/");
-            cookie.setHttpOnly(true);
-            // cookie.setSecure(true); // HTTPS 사용 시 활성화
-
-            response.addCookie(cookie);
+            response.addHeader("Set-Cookie", buildAuthorizationCookie(loginResponse.getToken(), httpRequest.isSecure(), 3 * 60 * 60).toString());
 
             // 프론트엔드가 기대하는 구조로 응답 생성
             Map<String, Object> responseBody = new HashMap<>();
@@ -103,15 +97,8 @@ public class AuthController {
             @ApiResponse(responseCode = "200", description = "로그아웃 성공")
     })
     @PostMapping("/logout")
-    public ResponseEntity<Void> logout(HttpServletResponse response) {
-        // Authorization Cookie 삭제
-        Cookie cookie = new Cookie("Authorization", null);
-        cookie.setMaxAge(0); // 즉시 만료
-        cookie.setPath("/");
-        cookie.setHttpOnly(true);
-        // cookie.setSecure(true); // HTTPS 사용 시 활성화
-        
-        response.addCookie(cookie);
+    public ResponseEntity<Void> logout(HttpServletRequest request, HttpServletResponse response) {
+        response.addHeader("Set-Cookie", buildAuthorizationCookie("", request.isSecure(), 0).toString());
         
         return ResponseEntity.ok().build();
     }
@@ -132,5 +119,15 @@ public class AuthController {
         response.put("check", exists);  // true: 중복됨, false: 사용 가능
 
         return ResponseEntity.ok(response);
+    }
+
+    private ResponseCookie buildAuthorizationCookie(String value, boolean secure, long maxAgeSeconds) {
+        return ResponseCookie.from("Authorization", value)
+                .httpOnly(true)
+                .secure(secure)
+                .sameSite("Lax")
+                .path("/")
+                .maxAge(maxAgeSeconds)
+                .build();
     }
 }

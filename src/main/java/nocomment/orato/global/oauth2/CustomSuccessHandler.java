@@ -1,12 +1,12 @@
 package nocomment.orato.global.oauth2;
 
 import jakarta.servlet.ServletException;
-import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import nocomment.orato.domain.auth.dto.CustomOAuth2User;
 import nocomment.orato.domain.auth.dto.CustomOidcUser;
 import nocomment.orato.global.jwt.JWTUtil;
+import org.springframework.http.ResponseCookie;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.web.authentication.SimpleUrlAuthenticationSuccessHandler;
@@ -74,21 +74,20 @@ public class CustomSuccessHandler extends SimpleUrlAuthenticationSuccessHandler 
         System.out.println("Creating JWT for username: " + username + ", role: " + role);
         String token = jwtUtil.createJwt(username, role, name, 60*60*60L);
 
-        response.addCookie(createCookie("Authorization", token));
+        response.addHeader("Set-Cookie", createCookie("Authorization", token, request.isSecure()).toString());
         
         // 테스트를 위해 백엔드로 리다이렉트 (프론트엔드가 준비되면 http://localhost:3000/로 변경)
         System.out.println("Redirecting to /");
         response.sendRedirect("http://localhost:5173/");
     }
 
-    private Cookie createCookie(String key, String value) {
-
-        Cookie cookie = new Cookie(key, value);
-        cookie.setMaxAge(60*60*60);
-        //cookie.setSecure(true);
-        cookie.setPath("/");
-        cookie.setHttpOnly(true);
-
-        return cookie;
+    private ResponseCookie createCookie(String key, String value, boolean secure) {
+        return ResponseCookie.from(key, value)
+                .httpOnly(true)
+                .secure(secure)
+                .sameSite("Lax")
+                .path("/")
+                .maxAge(60 * 60 * 60)
+                .build();
     }
 }
