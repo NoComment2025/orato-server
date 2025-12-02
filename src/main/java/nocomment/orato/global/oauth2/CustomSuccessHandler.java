@@ -15,6 +15,7 @@ import org.springframework.stereotype.Component;
 import java.io.IOException;
 import java.util.Collection;
 import java.util.Iterator;
+import java.util.Objects;
 
 @Component
 public class CustomSuccessHandler extends SimpleUrlAuthenticationSuccessHandler {
@@ -57,7 +58,7 @@ public class CustomSuccessHandler extends SimpleUrlAuthenticationSuccessHandler 
                 (org.springframework.security.oauth2.core.user.OAuth2User) authentication.getPrincipal();
             // OAuth2User의 name을 username으로 사용
             username = oauth2User.getName();
-            name = oauth2User.getAttribute("name").toString();
+            name = Objects.toString(oauth2User.getAttribute("name"), username);
             System.out.println("Extracted username: " + username);
         }
 
