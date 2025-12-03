@@ -5,6 +5,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import nocomment.orato.domain.auth.dto.CustomOAuth2User;
 import nocomment.orato.domain.auth.dto.CustomOidcUser;
+import nocomment.orato.global.config.OratoProperties;
 import nocomment.orato.global.jwt.JWTUtil;
 import org.springframework.http.ResponseCookie;
 import org.springframework.security.core.Authentication;
@@ -21,10 +22,12 @@ import java.util.Objects;
 public class CustomSuccessHandler extends SimpleUrlAuthenticationSuccessHandler {
 
     private final JWTUtil jwtUtil;
+    private final OratoProperties oratoProperties;
 
-    public CustomSuccessHandler(JWTUtil jwtUtil) {
+    public CustomSuccessHandler(JWTUtil jwtUtil, OratoProperties oratoProperties) {
 
         this.jwtUtil = jwtUtil;
+        this.oratoProperties = oratoProperties;
     }
 
     @Override
@@ -77,9 +80,8 @@ public class CustomSuccessHandler extends SimpleUrlAuthenticationSuccessHandler 
 
         response.addHeader("Set-Cookie", createCookie("Authorization", token, request.isSecure()).toString());
         
-        // 테스트를 위해 백엔드로 리다이렉트 (프론트엔드가 준비되면 http://localhost:3000/로 변경)
         System.out.println("Redirecting to /");
-        response.sendRedirect("http://localhost:5173/");
+        response.sendRedirect(oratoProperties.getFrontend().getRedirectUrl());
     }
 
     private ResponseCookie createCookie(String key, String value, boolean secure) {
