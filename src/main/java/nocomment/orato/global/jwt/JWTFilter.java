@@ -6,6 +6,7 @@ import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import nocomment.orato.domain.auth.dto.CustomOAuth2User;
 import nocomment.orato.domain.auth.dto.UserDTO;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -16,6 +17,7 @@ import org.springframework.web.filter.OncePerRequestFilter;
 import java.io.IOException;
 
 @RequiredArgsConstructor
+@Slf4j
 public class JWTFilter extends OncePerRequestFilter {
 
     private final JWTUtil jwtUtil;
@@ -24,7 +26,7 @@ public class JWTFilter extends OncePerRequestFilter {
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
         String requestURI = request.getRequestURI();
-        System.out.println("JWTFilter - Processing request: " + requestURI);
+        log.debug("Processing JWT for request: {}", requestURI);
 
         String authorization = null;
 
@@ -32,7 +34,7 @@ public class JWTFilter extends OncePerRequestFilter {
         String authHeader = request.getHeader("Authorization");
         if (authHeader != null && authHeader.startsWith("Bearer ")) {
             authorization = authHeader.substring(7);
-            System.out.println("Authorization token found in header");
+            log.debug("Authorization token found in header");
         }
 
         // 2. 헤더에 없으면 쿠키에서 확인
@@ -40,26 +42,24 @@ public class JWTFilter extends OncePerRequestFilter {
             Cookie[] cookies = request.getCookies();
             if (cookies != null) {
                 for (Cookie cookie : cookies) {
-                    System.out.println("Cookie found: " + cookie.getName());
                     if ("Authorization".equals(cookie.getName())) {
                         authorization = cookie.getValue();
-                        System.out.println("Authorization token found in cookie");
+                        log.debug("Authorization token found in cookie");
+                        break;
                     }
                 }
-            } else {
-                System.out.println("No cookies found in request");
             }
         }
 
         if (authorization == null) {
-            System.out.println("token null - allowing request to proceed without authentication");
+            log.debug("No JWT token provided for request: {}", requestURI);
             filterChain.doFilter(request, response);
             return;
         }
 
         try {
             if (jwtUtil.isExpired(authorization)) {
-                System.out.println("token expired - allowing request to proceed without authentication");
+                log.debug("Expired JWT token for request: {}", requestURI);
                 filterChain.doFilter(request, response);
                 return;
             }
@@ -68,7 +68,7 @@ public class JWTFilter extends OncePerRequestFilter {
             String role = jwtUtil.getRole(authorization);
             String name = jwtUtil.getName(authorization);
 
-            System.out.println("JWT validated - username: " + username + ", role: " + role);
+            log.debug("JWT validated for username: {}", username);
 
             UserDTO userDTO = new UserDTO();
             userDTO.setUsername(username);
@@ -79,12 +79,12 @@ public class JWTFilter extends OncePerRequestFilter {
             Authentication authToken = new UsernamePasswordAuthenticationToken(customOAuth2User, null, customOAuth2User.getAuthorities());
             SecurityContextHolder.getContext().setAuthentication(authToken);
 
-            System.out.println("Authentication set in SecurityContext");
+            log.debug("Authentication set in SecurityContext for request: {}", requestURI);
 
             filterChain.doFilter(request, response);
         } catch (Exception e) {
-            System.err.println("Error processing JWT: " + e.getMessage());
-            e.printStackTrace();
+            log.warn("Failed to process JWT for request: {}", requestURI, e);
             filterChain.doFilter(request, response);
         }
-    }}
+    }
+}
