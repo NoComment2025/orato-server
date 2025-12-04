@@ -1,7 +1,5 @@
-
 package nocomment.orato.domain.analysis.sound.controller;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -10,6 +8,7 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import nocomment.orato.domain.analysis.sound.Dto.RequestDataDto;
 import nocomment.orato.domain.analysis.dto.Status;
@@ -34,7 +33,6 @@ public class SoundAnalysisController {
 
     private final SoundAnalysisRepository soundAnalysisRepository;
     private final SoundAnalysisService soundAnalysisService;
-    private final ObjectMapper objectMapper = new ObjectMapper();
 
     @Operation(
             summary = "음성 분석 요청",
@@ -52,36 +50,15 @@ public class SoundAnalysisController {
             @Parameter(description = "분석할 음성 파일")
             @RequestPart(value = "file", required = true) MultipartFile file,
             @Parameter(description = "분석 메타데이터 (JSON 형식)", schema = @Schema(implementation = RequestDataDto.class))
-            @RequestPart(value = "data", required = false) String dataJson
+            @Valid @RequestPart(value = "data", required = true) RequestDataDto data
     ) {
 
         System.out.println("Sound Call came");
-
-        // 1) JSON → DTO 변환
-        RequestDataDto data;
-        try {
-            if (dataJson == null) {
-                return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                        .body(new Status(400, "data 파트가 비어있습니다."));
-            }
-
-            data = objectMapper.readValue(dataJson, RequestDataDto.class);
-
-        } catch (Exception e) {
-            e.printStackTrace();
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                    .body(new Status(400, "JSON 파싱 오류"));
-        }
 
         if (file == null || file.isEmpty()) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST)
                     .body(new Status(400, "file 파트가 비어있습니다."));
         }
-
-        // 2) DTO 데이터 파싱
-        String topic = data.getTopic();
-        String tags = data.getTag();
-        Boolean hasTimeLimit = data.getHasTimeLimit();
 
         // 3) 사운드 분석 요청
         System.out.println("요청보냈음");
