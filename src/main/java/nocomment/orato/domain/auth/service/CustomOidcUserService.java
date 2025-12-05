@@ -1,5 +1,6 @@
 package nocomment.orato.domain.auth.service;
 
+import lombok.extern.slf4j.Slf4j;
 import nocomment.orato.domain.auth.dto.CustomOAuth2User;
 import nocomment.orato.domain.auth.dto.CustomOidcUser;
 import nocomment.orato.domain.auth.dto.UserDTO;
@@ -12,6 +13,7 @@ import org.springframework.security.oauth2.core.oidc.user.OidcUser;
 import org.springframework.stereotype.Service;
 
 @Service
+@Slf4j
 public class CustomOidcUserService extends OidcUserService {
 
     private final UserRepository userRepository;
@@ -24,10 +26,9 @@ public class CustomOidcUserService extends OidcUserService {
     public OidcUser loadUser(OidcUserRequest userRequest) throws OAuth2AuthenticationException {
         try {
             OidcUser oidcUser = super.loadUser(userRequest);
-            System.out.println("OIDC User loaded: " + oidcUser);
 
             String registrationId = userRequest.getClientRegistration().getRegistrationId();
-            System.out.println("OIDC Registration ID: " + registrationId);
+            log.debug("Loaded OIDC user for provider: {}", registrationId);
 
             // Google OIDC에서 정보 추출
             String email = oidcUser.getEmail();
@@ -35,13 +36,11 @@ public class CustomOidcUserService extends OidcUserService {
             String providerId = oidcUser.getSubject(); // Google의 고유 ID
 
             String username = registrationId + "_" + providerId;
-            System.out.println("Generated OIDC username: " + username);
 
             User existData = userRepository.findByUsername(username);
-            System.out.println("Existing user found: " + (existData != null));
 
             if (existData == null) {
-                System.out.println("Creating new OIDC user...");
+                log.info("Creating OIDC user for provider: {}", registrationId);
 
                 User userEntity = new User();
                 userEntity.setUsername(username);
@@ -51,7 +50,7 @@ public class CustomOidcUserService extends OidcUserService {
                 userEntity.setProvider(registrationId);
 
                 User savedUser = userRepository.save(userEntity);
-                System.out.println("OIDC User saved with ID: " + savedUser.getId());
+                log.debug("Created OIDC user with id: {}", savedUser.getId());
 
                 UserDTO userDTO = new UserDTO();
                 userDTO.setUsername(username);
@@ -60,7 +59,7 @@ public class CustomOidcUserService extends OidcUserService {
 
                 return new CustomOidcUser(userDTO, oidcUser);
             } else {
-                System.out.println("Updating existing OIDC user...");
+                log.debug("Updating existing OIDC user for provider: {}", registrationId);
 
                 existData.setEmail(email);
                 existData.setName(name);
@@ -75,8 +74,7 @@ public class CustomOidcUserService extends OidcUserService {
                 return new CustomOidcUser(userDTO, oidcUser);
             }
         } catch (Exception e) {
-            System.err.println("Error in CustomOidcUserService: " + e.getMessage());
-            e.printStackTrace();
+            log.error("Error while processing OIDC login", e);
             throw new OAuth2AuthenticationException("OIDC 인증 중 오류가 발생했습니다: " + e.getMessage());
         }
     }

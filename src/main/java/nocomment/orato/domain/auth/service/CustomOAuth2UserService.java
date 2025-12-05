@@ -1,5 +1,6 @@
 package nocomment.orato.domain.auth.service;
 
+import lombok.extern.slf4j.Slf4j;
 import nocomment.orato.domain.auth.dto.*;
 import nocomment.orato.domain.auth.entity.User;
 import nocomment.orato.domain.auth.repository.UserRepository;
@@ -10,6 +11,7 @@ import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.stereotype.Service;
 
 @Service
+@Slf4j
 public class CustomOAuth2UserService extends DefaultOAuth2UserService {
 
     private final UserRepository userRepository;
@@ -24,10 +26,9 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
         
         try {
             OAuth2User oAuth2User = super.loadUser(userRequest);
-            System.out.println("OAuth2User loaded: " + oAuth2User);
 
             String registrationId = userRequest.getClientRegistration().getRegistrationId();
-            System.out.println("Registration ID: " + registrationId);
+            log.debug("Loaded OAuth2 user for provider: {}", registrationId);
             
             OAuth2Response oAuth2Response = null;
             if (registrationId.equals("naver")) {
@@ -39,18 +40,16 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
                 oAuth2Response = new GoogleResponse(oAuth2User.getAttributes());
             }
             else {
-                System.out.println("Unknown provider: " + registrationId);
+                log.warn("Unsupported OAuth2 provider: {}", registrationId);
                 return null;
             }
             
             String username = oAuth2Response.getProvider()+"_"+oAuth2Response.getProviderId();
-            System.out.println("Generated username: " + username);
             
             User existData = userRepository.findByUsername(username);
-            System.out.println("Existing user found: " + (existData != null));
 
             if (existData == null) {
-                System.out.println("Creating new user...");
+                log.info("Creating OAuth2 user for provider: {}", registrationId);
                 
                 User userEntity = new User();
                 userEntity.setUsername(username);
@@ -60,7 +59,7 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
                 userEntity.setProvider(oAuth2Response.getProvider()); // OAuth2 제공자 저장
 
                 User savedUser = userRepository.save(userEntity);
-                System.out.println("User saved with ID: " + savedUser.getId());
+                log.debug("Created OAuth2 user with id: {}", savedUser.getId());
 
                 UserDTO userDTO = new UserDTO();
                 userDTO.setUsername(username);
@@ -70,7 +69,7 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
                 return new CustomOAuth2User(userDTO);
             }
             else {
-                System.out.println("Updating existing user...");
+                log.debug("Updating existing OAuth2 user for provider: {}", registrationId);
                 
                 existData.setEmail(oAuth2Response.getEmail());
                 existData.setName(oAuth2Response.getName());
@@ -85,8 +84,7 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
                 return new CustomOAuth2User(userDTO);
             }
         } catch (Exception e) {
-            System.err.println("Error in CustomOAuth2UserService: " + e.getMessage());
-            e.printStackTrace();
+            log.error("Error while processing OAuth2 login", e);
             throw new OAuth2AuthenticationException("OAuth2 인증 중 오류가 발생했습니다: " + e.getMessage());
         }
     }
