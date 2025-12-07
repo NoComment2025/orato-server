@@ -32,17 +32,6 @@ public class VideoAnalysisService {
 
     public Map<String, Object> assessPronunciation(MultipartFile file) {
         try {
-            MultiValueMap<String, Object> body = new LinkedMultiValueMap<>();
-
-            ByteArrayResource resource = new ByteArrayResource(file.getBytes()) {
-                @Override
-                public String getFilename() {
-                    return file.getOriginalFilename();
-                }
-            };
-            
-            body.add("file", resource);
-
             WebClient client = WebClient.builder()
                     .baseUrl(oratoProperties.getAnalysis().getBaseUrl())
                     .build();
@@ -50,7 +39,7 @@ public class VideoAnalysisService {
             return client.post()
                     .uri("/video/analyze")
                     .contentType(MediaType.MULTIPART_FORM_DATA)
-                    .body(BodyInserters.fromMultipartData(body))
+                    .body(BodyInserters.fromMultipartData(createMultipartBody(file)))
                     .retrieve()
                     .bodyToMono(new ParameterizedTypeReference<Map<String, Object>>() {})
                     .block();
@@ -80,5 +69,16 @@ public class VideoAnalysisService {
         nocomment.orato.domain.analysis.record.entity.Record rec = new Record("video", data.getTopic(), data.getTag(), savedId, username, feedbackMd);
         recordRepository.save(rec);
 
+    }
+
+    private MultiValueMap<String, Object> createMultipartBody(MultipartFile file) throws java.io.IOException {
+        MultiValueMap<String, Object> body = new LinkedMultiValueMap<>();
+        body.add("file", new ByteArrayResource(file.getBytes()) {
+            @Override
+            public String getFilename() {
+                return file.getOriginalFilename();
+            }
+        });
+        return body;
     }
 }

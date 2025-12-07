@@ -10,11 +10,10 @@ import nocomment.orato.domain.analysis.sound.repository.SoundAnalysisRepository;
 import nocomment.orato.global.config.OratoProperties;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.core.io.ByteArrayResource;
-import org.springframework.http.*;
+import org.springframework.http.MediaType;
 import org.springframework.stereotype.Service;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
-import org.springframework.web.client.RestTemplate;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.reactive.function.BodyInserters;
 import org.springframework.web.reactive.function.client.WebClient;
@@ -34,17 +33,6 @@ public class SoundAnalysisService {
 
     public Map<String, Object> assessPronunciation(MultipartFile file) {
         try {
-            MultiValueMap<String, Object> body = new LinkedMultiValueMap<>();
-
-            ByteArrayResource resource = new ByteArrayResource(file.getBytes()) {
-                @Override
-                public String getFilename() {
-                    return file.getOriginalFilename();
-                }
-            };
-            
-            body.add("file", resource);
-
             WebClient client = WebClient.builder()
                     .baseUrl(oratoProperties.getAnalysis().getBaseUrl())
                     .build();
@@ -52,7 +40,7 @@ public class SoundAnalysisService {
             return client.post()
                     .uri("/sound/analyze")
                     .contentType(MediaType.MULTIPART_FORM_DATA)
-                    .body(BodyInserters.fromMultipartData(body))
+                    .body(BodyInserters.fromMultipartData(createMultipartBody(file)))
                     .retrieve()
                     .bodyToMono(new ParameterizedTypeReference<Map<String, Object>>() {})
                     .block();
@@ -83,5 +71,16 @@ public class SoundAnalysisService {
         Record rec = new Record("sound", data.getTopic(), data.getTag(), savedId, username, feedbackMd);
         recordRepository.save(rec);
 
+    }
+
+    private MultiValueMap<String, Object> createMultipartBody(MultipartFile file) throws java.io.IOException {
+        MultiValueMap<String, Object> body = new LinkedMultiValueMap<>();
+        body.add("file", new ByteArrayResource(file.getBytes()) {
+            @Override
+            public String getFilename() {
+                return file.getOriginalFilename();
+            }
+        });
+        return body;
     }
 }
