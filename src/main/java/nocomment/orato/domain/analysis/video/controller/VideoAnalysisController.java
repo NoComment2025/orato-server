@@ -15,12 +15,10 @@ import nocomment.orato.domain.analysis.video.Dto.RequestDataDto;
 import nocomment.orato.domain.analysis.video.entity.VideoAnalysis;
 import nocomment.orato.domain.analysis.video.repository.VideoAnalysisRepository;
 import nocomment.orato.domain.analysis.video.service.VideoAnalysisService;
-import nocomment.orato.domain.auth.dto.CustomOAuth2User;
+import nocomment.orato.global.auth.CurrentUserResolver;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -33,6 +31,7 @@ public class VideoAnalysisController {
 
     private final VideoAnalysisRepository videoAnalysisRepository;
     private final VideoAnalysisService videoAnalysisService;
+    private final CurrentUserResolver currentUserResolver;
 
     @Operation(
             summary = "비디오 분석 요청",
@@ -66,17 +65,7 @@ public class VideoAnalysisController {
 
         String response_feedbackMd = (String) response.get("feedback_md");
 
-        // 3.5) SecurityContext에서 username 추출
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        String username = null;
-
-        if (authentication != null && authentication.isAuthenticated()) {
-            Object principal = authentication.getPrincipal();
-            if (principal instanceof CustomOAuth2User) {
-                CustomOAuth2User customOAuth2User = (CustomOAuth2User) principal;
-                username = customOAuth2User.getUsername();
-            }
-        }
+        String username = currentUserResolver.getCurrentUsername();
 
         // 4) DB 저장
         videoAnalysisService.save(data, response_feedbackMd, username);
@@ -101,18 +90,7 @@ public class VideoAnalysisController {
     public ResponseEntity<VideoAnalysis> fetchRecords(
             @Parameter(description = "조회할 분석 결과 ID", required = true)
             @PathVariable Long id) {
-
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        if (authentication == null || !authentication.isAuthenticated()) {
-            return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
-        }
-
-        Object principal = authentication.getPrincipal();
-        if (!(principal instanceof CustomOAuth2User customOAuth2User)) {
-            return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
-        }
-
-        Optional<VideoAnalysis> sa = videoAnalysisRepository.findByIdAndUsername(id, customOAuth2User.getUsername());
+        Optional<VideoAnalysis> sa = videoAnalysisRepository.findByIdAndUsername(id, currentUserResolver.getCurrentUsername());
         if (sa.isEmpty()) {
             return new ResponseEntity<>(HttpStatus.NOT_FOUND);
         }

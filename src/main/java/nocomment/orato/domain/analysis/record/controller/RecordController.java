@@ -12,11 +12,9 @@ import nocomment.orato.domain.analysis.record.dto.RecordPageRequest;
 import nocomment.orato.domain.analysis.record.dto.RecordResponse;
 import nocomment.orato.domain.analysis.record.entity.Record;
 import nocomment.orato.domain.analysis.record.repository.RecordRepository;
-import nocomment.orato.domain.auth.dto.CustomOAuth2User;
+import nocomment.orato.global.auth.CurrentUserResolver;
 import org.springframework.data.domain.Page;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.RestController;
@@ -29,6 +27,7 @@ import java.util.stream.Collectors;
 @Tag(name = "Record", description = "분석 결과 레코드 API")
 public class RecordController {
     private final RecordRepository recordRepository;
+    private final CurrentUserResolver currentUserResolver;
 
     @Operation(
             summary = "분석 결과 레코드 목록 조회 (전체)",
@@ -41,21 +40,7 @@ public class RecordController {
     })
     @GetMapping("/records")
     public ResponseEntity<RecordListResponse> getRecordList() {
-
-        // SecurityContext에서 username 추출
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        
-        if (authentication == null || !authentication.isAuthenticated()) {
-            return ResponseEntity.status(401).build();
-        }
-        
-        Object principal = authentication.getPrincipal();
-        if (!(principal instanceof CustomOAuth2User)) {
-            return ResponseEntity.status(401).build();
-        }
-        
-        CustomOAuth2User customOAuth2User = (CustomOAuth2User) principal;
-        String username = customOAuth2User.getUsername();
+        String username = currentUserResolver.getCurrentUsername();
 
         // username으로 필터링하여 전체 조회
         List<Record> records = recordRepository.findByUsername(username);
@@ -83,21 +68,7 @@ public class RecordController {
     @GetMapping("/records/page")
     public ResponseEntity<PageResponse<RecordResponse>> getRecordListPaged(
             @ModelAttribute RecordPageRequest request) {
-
-        // SecurityContext에서 username 추출
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        
-        if (authentication == null || !authentication.isAuthenticated()) {
-            return ResponseEntity.status(401).build();
-        }
-        
-        Object principal = authentication.getPrincipal();
-        if (!(principal instanceof CustomOAuth2User)) {
-            return ResponseEntity.status(401).build();
-        }
-        
-        CustomOAuth2User customOAuth2User = (CustomOAuth2User) principal;
-        String username = customOAuth2User.getUsername();
+        String username = currentUserResolver.getCurrentUsername();
 
         // username으로 필터링하여 페이지네이션 조회
         Page<Record> recordPage = recordRepository.findByUsername(username, request.toPageable());
