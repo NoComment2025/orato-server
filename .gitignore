@@ -16,6 +16,9 @@ target/
 !gradle/wrapper/gradle-wrapper.jar
 !**/src/main/**/build/
 !**/src/test/**/build/
+postgres-data/
+settings.gradle
+gradle.properties
 
 # IDE
 .idea/
