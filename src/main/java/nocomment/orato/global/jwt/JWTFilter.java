@@ -53,38 +53,33 @@ public class JWTFilter extends OncePerRequestFilter {
 
         if (authorization == null) {
             log.debug("No JWT token provided for request: {}", requestURI);
-            filterChain.doFilter(request, response);
-            return;
-        }
+        } else {
+            try {
+                if (jwtUtil.isExpired(authorization)) {
+                    log.debug("Expired JWT token for request: {}", requestURI);
+                } else {
+                    String username = jwtUtil.getUsername(authorization);
+                    String role = jwtUtil.getRole(authorization);
+                    String name = jwtUtil.getName(authorization);
 
-        try {
-            if (jwtUtil.isExpired(authorization)) {
-                log.debug("Expired JWT token for request: {}", requestURI);
-                filterChain.doFilter(request, response);
-                return;
+                    log.debug("JWT validated for username: {}", username);
+
+                    UserDTO userDTO = new UserDTO();
+                    userDTO.setUsername(username);
+                    userDTO.setRole(role);
+                    userDTO.setName(name);
+
+                    CustomOAuth2User customOAuth2User = new CustomOAuth2User(userDTO);
+                    Authentication authToken = new UsernamePasswordAuthenticationToken(customOAuth2User, null, customOAuth2User.getAuthorities());
+                    SecurityContextHolder.getContext().setAuthentication(authToken);
+
+                    log.debug("Authentication set in SecurityContext for request: {}", requestURI);
+                }
+            } catch (Exception e) {
+                log.warn("Failed to process JWT for request: {}", requestURI, e);
             }
-
-            String username = jwtUtil.getUsername(authorization);
-            String role = jwtUtil.getRole(authorization);
-            String name = jwtUtil.getName(authorization);
-
-            log.debug("JWT validated for username: {}", username);
-
-            UserDTO userDTO = new UserDTO();
-            userDTO.setUsername(username);
-            userDTO.setRole(role);
-            userDTO.setName(name);
-
-            CustomOAuth2User customOAuth2User = new CustomOAuth2User(userDTO);
-            Authentication authToken = new UsernamePasswordAuthenticationToken(customOAuth2User, null, customOAuth2User.getAuthorities());
-            SecurityContextHolder.getContext().setAuthentication(authToken);
-
-            log.debug("Authentication set in SecurityContext for request: {}", requestURI);
-
-            filterChain.doFilter(request, response);
-        } catch (Exception e) {
-            log.warn("Failed to process JWT for request: {}", requestURI, e);
-            filterChain.doFilter(request, response);
         }
+
+        filterChain.doFilter(request, response);
     }
 }
