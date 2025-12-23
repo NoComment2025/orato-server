@@ -9,6 +9,8 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import nocomment.orato.domain.auth.dto.CustomOAuth2User;
 import nocomment.orato.domain.auth.dto.UserDTO;
+import nocomment.orato.domain.auth.entity.User;
+import nocomment.orato.domain.auth.repository.UserRepository;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -21,6 +23,7 @@ import java.io.IOException;
 public class JWTFilter extends OncePerRequestFilter {
 
     private final JWTUtil jwtUtil;
+    private final UserRepository userRepository;
 
 
     @Override
@@ -59,21 +62,21 @@ public class JWTFilter extends OncePerRequestFilter {
                     log.debug("Expired JWT token for request: {}", requestURI);
                 } else {
                     String username = jwtUtil.getUsername(authorization);
-                    String role = jwtUtil.getRole(authorization);
-                    String name = jwtUtil.getName(authorization);
+                    User user = userRepository.findByUsername(username);
+                    if (user == null) {
+                        log.debug("JWT user no longer exists for request: {}", requestURI);
+                    } else {
+                        UserDTO userDTO = new UserDTO();
+                        userDTO.setUsername(user.getUsername());
+                        userDTO.setRole(user.getRole());
+                        userDTO.setName(user.getName());
 
-                    log.debug("JWT validated for username: {}", username);
+                        CustomOAuth2User customOAuth2User = new CustomOAuth2User(userDTO);
+                        Authentication authToken = new UsernamePasswordAuthenticationToken(customOAuth2User, null, customOAuth2User.getAuthorities());
+                        SecurityContextHolder.getContext().setAuthentication(authToken);
 
-                    UserDTO userDTO = new UserDTO();
-                    userDTO.setUsername(username);
-                    userDTO.setRole(role);
-                    userDTO.setName(name);
-
-                    CustomOAuth2User customOAuth2User = new CustomOAuth2User(userDTO);
-                    Authentication authToken = new UsernamePasswordAuthenticationToken(customOAuth2User, null, customOAuth2User.getAuthorities());
-                    SecurityContextHolder.getContext().setAuthentication(authToken);
-
-                    log.debug("Authentication set in SecurityContext for request: {}", requestURI);
+                        log.debug("Authentication set in SecurityContext for request: {}", requestURI);
+                    }
                 }
             } catch (Exception e) {
                 log.warn("Failed to process JWT for request: {}", requestURI, e);

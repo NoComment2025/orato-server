@@ -3,6 +3,7 @@ package nocomment.orato.global.config;
 import jakarta.servlet.http.HttpServletRequest;
 import nocomment.orato.domain.auth.service.CustomOAuth2UserService;
 import nocomment.orato.domain.auth.service.CustomOidcUserService;
+import nocomment.orato.domain.auth.repository.UserRepository;
 import nocomment.orato.global.jwt.JWTFilter;
 import nocomment.orato.global.jwt.JWTUtil;
 import nocomment.orato.global.oauth2.CustomSuccessHandler;
@@ -27,12 +28,14 @@ public class SecurityConfig {
     private final CustomOidcUserService customOidcUserService;
     private final CustomSuccessHandler customSuccessHandler;
     private final JWTUtil jwtUtil;
+    private final UserRepository userRepository;
 
-    public SecurityConfig(CustomOAuth2UserService customOAuth2UserService, CustomOidcUserService customOidcUserService, CustomSuccessHandler customSuccessHandler, JWTUtil jwtUtil) {
+    public SecurityConfig(CustomOAuth2UserService customOAuth2UserService, CustomOidcUserService customOidcUserService, CustomSuccessHandler customSuccessHandler, JWTUtil jwtUtil, UserRepository userRepository) {
         this.customOAuth2UserService = customOAuth2UserService;
         this.customOidcUserService = customOidcUserService;
         this.customSuccessHandler = customSuccessHandler;
         this.jwtUtil = jwtUtil;
+        this.userRepository = userRepository;
     }
 
     @Bean
@@ -76,7 +79,7 @@ public class SecurityConfig {
 
         // JWTFilter 추가 (UsernamePasswordAuthenticationFilter 이전에 실행)
         http
-                .addFilterBefore(new JWTFilter(jwtUtil), UsernamePasswordAuthenticationFilter.class);
+                .addFilterBefore(new JWTFilter(jwtUtil, userRepository), UsernamePasswordAuthenticationFilter.class);
 
         // oauth2 로그인 설정
         http
