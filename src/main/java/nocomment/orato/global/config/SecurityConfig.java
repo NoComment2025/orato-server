@@ -29,13 +29,15 @@ public class SecurityConfig {
     private final CustomSuccessHandler customSuccessHandler;
     private final JWTUtil jwtUtil;
     private final UserRepository userRepository;
+    private final OratoProperties oratoProperties;
 
-    public SecurityConfig(CustomOAuth2UserService customOAuth2UserService, CustomOidcUserService customOidcUserService, CustomSuccessHandler customSuccessHandler, JWTUtil jwtUtil, UserRepository userRepository) {
+    public SecurityConfig(CustomOAuth2UserService customOAuth2UserService, CustomOidcUserService customOidcUserService, CustomSuccessHandler customSuccessHandler, JWTUtil jwtUtil, UserRepository userRepository, OratoProperties oratoProperties) {
         this.customOAuth2UserService = customOAuth2UserService;
         this.customOidcUserService = customOidcUserService;
         this.customSuccessHandler = customSuccessHandler;
         this.jwtUtil = jwtUtil;
         this.userRepository = userRepository;
+        this.oratoProperties = oratoProperties;
     }
 
     @Bean
@@ -65,9 +67,10 @@ public class SecurityConfig {
                     }
                 }));
 
-        // csrf disable (JWT를 사용하므로 비활성화)
+        // Cookie 인증의 변경 요청은 출처를 검증하고, Bearer 인증은 쿠키에 의존하지 않습니다.
         http
-                .csrf((auth) -> auth.disable());
+                .csrf((auth) -> auth.disable())
+                .addFilterBefore(new CookieCsrfFilter(oratoProperties), UsernamePasswordAuthenticationFilter.class);
 
         // From 로그인 방식 disable (OAuth2 및 JWT를 사용하므로 비활성화)
         http
