@@ -62,6 +62,8 @@ orato:
     base-url: ${ORATO_ANALYSIS_BASE_URL}
   frontend:
     redirect-url: ${ORATO_FRONTEND_REDIRECT_URL:http://localhost:5173/}
+  auth:
+    cookie-secure: ${ORATO_AUTH_COOKIE_SECURE:true}
 
 server:
   port: ${SERVER_PORT:7999}

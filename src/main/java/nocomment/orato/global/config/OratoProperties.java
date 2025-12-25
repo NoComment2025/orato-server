@@ -13,6 +13,7 @@ public class OratoProperties {
 
     private final Analysis analysis = new Analysis();
     private final Frontend frontend = new Frontend();
+    private final Auth auth = new Auth();
 
     @Getter
     @Setter
@@ -24,5 +25,11 @@ public class OratoProperties {
     @Setter
     public static class Frontend {
         private String redirectUrl = "http://localhost:5173/";
+    }
+
+    @Getter
+    @Setter
+    public static class Auth {
+        private boolean cookieSecure = true;
     }
 }

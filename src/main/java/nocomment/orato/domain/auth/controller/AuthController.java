@@ -6,15 +6,15 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
-import jakarta.validation.Valid;
-import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import nocomment.orato.domain.auth.dto.LoginRequest;
 import nocomment.orato.domain.auth.dto.LoginResponse;
 import nocomment.orato.domain.auth.dto.SignUpRequest;
 import nocomment.orato.domain.auth.dto.SignUpResponse;
 import nocomment.orato.domain.auth.service.AuthService;
+import nocomment.orato.global.config.OratoProperties;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseCookie;
 import org.springframework.http.ResponseEntity;
@@ -30,6 +30,7 @@ import java.util.Map;
 public class AuthController {
 
     private final AuthService authService;
+    private final OratoProperties oratoProperties;
 
     @Operation(
             summary = "회원가입",
@@ -62,11 +63,11 @@ public class AuthController {
 
 
     @PostMapping("/login")
-    public ResponseEntity<?> login(@Valid @RequestBody LoginRequest request, HttpServletRequest httpRequest, HttpServletResponse response) {
+    public ResponseEntity<?> login(@Valid @RequestBody LoginRequest request, HttpServletResponse response) {
         try {
             LoginResponse loginResponse = authService.login(request);
 
-            response.addHeader("Set-Cookie", buildAuthorizationCookie(loginResponse.getToken(), httpRequest.isSecure(), 3 * 60 * 60).toString());
+            response.addHeader("Set-Cookie", buildAuthorizationCookie(loginResponse.getToken(), 3 * 60 * 60).toString());
 
             // 프론트엔드가 기대하는 구조로 응답 생성
             Map<String, Object> responseBody = new HashMap<>();
@@ -98,8 +99,8 @@ public class AuthController {
             @ApiResponse(responseCode = "200", description = "로그아웃 성공")
     })
     @PostMapping("/logout")
-    public ResponseEntity<Void> logout(HttpServletRequest request, HttpServletResponse response) {
-        response.addHeader("Set-Cookie", buildAuthorizationCookie("", request.isSecure(), 0).toString());
+    public ResponseEntity<Void> logout(HttpServletResponse response) {
+        response.addHeader("Set-Cookie", buildAuthorizationCookie("", 0).toString());
         
         return ResponseEntity.ok().build();
     }
@@ -122,10 +123,10 @@ public class AuthController {
         return ResponseEntity.ok(response);
     }
 
-    private ResponseCookie buildAuthorizationCookie(String value, boolean secure, long maxAgeSeconds) {
+    private ResponseCookie buildAuthorizationCookie(String value, long maxAgeSeconds) {
         return ResponseCookie.from("Authorization", value)
                 .httpOnly(true)
-                .secure(secure)
+                .secure(oratoProperties.getAuth().isCookieSecure())
                 .sameSite("Lax")
                 .path("/")
                 .maxAge(maxAgeSeconds)

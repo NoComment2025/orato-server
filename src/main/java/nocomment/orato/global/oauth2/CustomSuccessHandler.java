@@ -78,16 +78,16 @@ public class CustomSuccessHandler extends SimpleUrlAuthenticationSuccessHandler 
 
         String token = jwtUtil.createJwt(username, role, name, 60*60*60L);
 
-        response.addHeader("Set-Cookie", createCookie("Authorization", token, request.isSecure()).toString());
+        response.addHeader("Set-Cookie", createCookie("Authorization", token).toString());
         
         log.info("OAuth login succeeded, redirecting to frontend");
         response.sendRedirect(oratoProperties.getFrontend().getRedirectUrl());
     }
 
-    private ResponseCookie createCookie(String key, String value, boolean secure) {
+    private ResponseCookie createCookie(String key, String value) {
         return ResponseCookie.from(key, value)
                 .httpOnly(true)
-                .secure(secure)
+                .secure(oratoProperties.getAuth().isCookieSecure())
                 .sameSite("Lax")
                 .path("/")
                 .maxAge(60 * 60 * 60)
