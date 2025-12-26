@@ -15,6 +15,7 @@ import nocomment.orato.domain.auth.dto.SignUpRequest;
 import nocomment.orato.domain.auth.dto.SignUpResponse;
 import nocomment.orato.domain.auth.service.AuthService;
 import nocomment.orato.global.config.OratoProperties;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseCookie;
 import org.springframework.http.ResponseEntity;
@@ -48,6 +49,11 @@ public class AuthController {
             return ResponseEntity.status(HttpStatus.CREATED).body(response);
         } catch (IllegalArgumentException e) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
+        } catch (DataIntegrityViolationException e) {
+            if (authService.existsByUsername(request.getUsername())) {
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
+            }
+            throw e;
         }
     }
 
