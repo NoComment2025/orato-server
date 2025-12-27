@@ -17,8 +17,11 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.Locale;
 
 @Configuration
 @EnableWebSecurity
@@ -47,6 +50,7 @@ public class SecurityConfig {
 
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
+        String frontendOrigin = getFrontendOrigin();
 
         http
                 .cors(corsCustomizer -> corsCustomizer.configurationSource(new CorsConfigurationSource() {
@@ -54,7 +58,7 @@ public class SecurityConfig {
                     public CorsConfiguration getCorsConfiguration(HttpServletRequest request) {
                         CorsConfiguration configuration = new CorsConfiguration();
 
-                        configuration.setAllowedOrigins(Collections.singletonList("http://localhost:5173"));
+                        configuration.setAllowedOrigins(Collections.singletonList(frontendOrigin));
                         configuration.setAllowedMethods(Collections.singletonList("*"));
                         configuration.setAllowCredentials(true);
                         configuration.setAllowedHeaders(Collections.singletonList("*"));
@@ -111,5 +115,28 @@ public class SecurityConfig {
                         .sessionCreationPolicy(SessionCreationPolicy.STATELESS));
 
         return http.build();
+    }
+
+    private String getFrontendOrigin() {
+        URI redirectUrl = URI.create(oratoProperties.getFrontend().getRedirectUrl());
+        String scheme = redirectUrl.getScheme();
+        String host = redirectUrl.getHost();
+        if (scheme == null || host == null || redirectUrl.getUserInfo() != null
+                || !(scheme.equalsIgnoreCase("http") || scheme.equalsIgnoreCase("https"))) {
+            throw new IllegalArgumentException("Invalid frontend redirect URL");
+        }
+
+        int port = redirectUrl.getPort();
+        if ((scheme.equalsIgnoreCase("http") && port == 80)
+                || (scheme.equalsIgnoreCase("https") && port == 443)) {
+            port = -1;
+        }
+
+        try {
+            return new URI(scheme.toLowerCase(Locale.ROOT), null, host.toLowerCase(Locale.ROOT), port,
+                    null, null, null).toString();
+        } catch (URISyntaxException e) {
+            throw new IllegalArgumentException("Invalid frontend redirect URL", e);
+        }
     }
 }
