@@ -42,7 +42,8 @@ public class VideoAnalysisController {
             @ApiResponse(responseCode = "200", description = "분석 성공", 
                     content = @Content(schema = @Schema(implementation = Status.class))),
             @ApiResponse(responseCode = "400", description = "잘못된 요청 (data 파트 누락 또는 JSON 파싱 오류)"),
-            @ApiResponse(responseCode = "401", description = "인증 실패")
+            @ApiResponse(responseCode = "401", description = "인증 실패"),
+            @ApiResponse(responseCode = "502", description = "분석 서버의 응답 형식 오류")
     })
     @PostMapping(value = "/analyze/video", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<Status> uploadVideo(
@@ -63,12 +64,16 @@ public class VideoAnalysisController {
         System.out.println("요청보냈음");
         Map<String, Object> response = videoAnalysisService.assessPronunciation(file);
 
-        String response_feedbackMd = (String) response.get("feedback_md");
+        Object feedbackValue = response == null ? null : response.get("feedback_md");
+        if (!(feedbackValue instanceof String feedbackMd) || feedbackMd.isBlank()) {
+            return ResponseEntity.status(HttpStatus.BAD_GATEWAY)
+                    .body(new Status(502, "분석 서버의 응답 형식이 올바르지 않습니다."));
+        }
 
         String username = currentUserResolver.getCurrentUsername();
 
         // 4) DB 저장
-        videoAnalysisService.save(data, response_feedbackMd, username);
+        videoAnalysisService.save(data, feedbackMd, username);
 
         // 5) 응답 반환
         return ResponseEntity.ok(new Status(200));
