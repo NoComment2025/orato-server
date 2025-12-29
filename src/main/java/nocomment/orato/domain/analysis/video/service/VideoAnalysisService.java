@@ -42,7 +42,7 @@ public class VideoAnalysisService {
                     .body(BodyInserters.fromMultipartData(createMultipartBody(file)))
                     .retrieve()
                     .bodyToMono(new ParameterizedTypeReference<Map<String, Object>>() {})
-                    .block();
+                    .block(oratoProperties.getAnalysis().getRequestTimeout());
 
         } catch (Exception e) {
             throw new RuntimeException("Failed to assess pronunciation: " + e.getMessage(), e);

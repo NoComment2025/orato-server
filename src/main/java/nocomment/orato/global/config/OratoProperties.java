@@ -5,6 +5,8 @@ import lombok.Setter;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.stereotype.Component;
 
+import java.time.Duration;
+
 @Getter
 @Setter
 @Component
@@ -19,6 +21,7 @@ public class OratoProperties {
     @Setter
     public static class Analysis {
         private String baseUrl = "http://localhost:8000";
+        private Duration requestTimeout = Duration.ofMinutes(10);
     }
 
     @Getter

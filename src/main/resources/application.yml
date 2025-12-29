@@ -60,6 +60,7 @@ spring:
 orato:
   analysis:
     base-url: ${ORATO_ANALYSIS_BASE_URL}
+    request-timeout: ${ORATO_ANALYSIS_REQUEST_TIMEOUT:10m}
   frontend:
     redirect-url: ${ORATO_FRONTEND_REDIRECT_URL:http://localhost:5173/}
   auth:
