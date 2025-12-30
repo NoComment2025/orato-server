@@ -9,7 +9,6 @@ import nocomment.orato.domain.analysis.video.entity.VideoAnalysis;
 import nocomment.orato.domain.analysis.video.repository.VideoAnalysisRepository;
 import nocomment.orato.global.config.OratoProperties;
 import org.springframework.core.ParameterizedTypeReference;
-import org.springframework.core.io.ByteArrayResource;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Service;
 import org.springframework.util.LinkedMultiValueMap;
@@ -71,14 +70,9 @@ public class VideoAnalysisService {
 
     }
 
-    private MultiValueMap<String, Object> createMultipartBody(MultipartFile file) throws java.io.IOException {
+    private MultiValueMap<String, Object> createMultipartBody(MultipartFile file) {
         MultiValueMap<String, Object> body = new LinkedMultiValueMap<>();
-        body.add("file", new ByteArrayResource(file.getBytes()) {
-            @Override
-            public String getFilename() {
-                return file.getOriginalFilename();
-            }
-        });
+        body.add("file", file.getResource());
         return body;
     }
 }
