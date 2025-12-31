@@ -21,7 +21,6 @@ import java.util.Map;
 
 @Service
 @RequiredArgsConstructor
-@Transactional
 public class VideoAnalysisService {
 
     // 음성 분석 데이터를 데이터베이스에 저장하기 위한 Repository
@@ -48,6 +47,7 @@ public class VideoAnalysisService {
         }
     }
 
+    @Transactional
     public void save(RequestDataDto data, String feedbackMd, String username){
         VideoAnalysis va = new VideoAnalysis(
                 data.getTopic(),
