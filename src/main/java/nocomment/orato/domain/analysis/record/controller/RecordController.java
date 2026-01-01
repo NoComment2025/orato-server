@@ -6,6 +6,7 @@ import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
+import nocomment.orato.domain.analysis.dto.Status;
 import nocomment.orato.domain.analysis.record.dto.PageResponse;
 import nocomment.orato.domain.analysis.record.dto.RecordListResponse;
 import nocomment.orato.domain.analysis.record.dto.RecordPageRequest;
@@ -14,6 +15,9 @@ import nocomment.orato.domain.analysis.record.entity.Record;
 import nocomment.orato.domain.analysis.record.repository.RecordRepository;
 import nocomment.orato.global.auth.CurrentUserResolver;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
@@ -26,27 +30,34 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 @Tag(name = "Record", description = "분석 결과 레코드 API")
 public class RecordController {
+    private static final int MAX_FULL_RECORDS = 100;
+
     private final RecordRepository recordRepository;
     private final CurrentUserResolver currentUserResolver;
 
     @Operation(
             summary = "분석 결과 레코드 목록 조회 (전체)",
-            description = "현재 로그인한 사용자의 모든 분석 결과(Sound/Video)를 조회합니다. 클라이언트에서 필터링/정렬/페이지네이션을 처리합니다. JWT 인증이 필요합니다.",
+            description = "현재 로그인한 사용자의 분석 결과(Sound/Video)가 100건 이하일 때 전체 조회합니다. 100건을 초과하면 /records/page를 사용해야 합니다. JWT 인증이 필요합니다.",
             security = @SecurityRequirement(name = "JWT")
     )
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "조회 성공"),
+            @ApiResponse(responseCode = "400", description = "전체 조회 한도 초과"),
             @ApiResponse(responseCode = "401", description = "인증 실패")
     })
     @GetMapping("/records")
-    public ResponseEntity<RecordListResponse> getRecordList() {
+    public ResponseEntity<?> getRecordList() {
         String username = currentUserResolver.getCurrentUsername();
 
-        // username으로 필터링하여 전체 조회
-        List<Record> records = recordRepository.findByUsername(username);
+        Page<Record> records = recordRepository.findByUsername(username,
+                PageRequest.of(0, MAX_FULL_RECORDS + 1, Sort.by(Sort.Direction.DESC, "createdDate", "id")));
+        if (records.getTotalElements() > MAX_FULL_RECORDS) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                    .body(new Status(400, "전체 조회는 100건까지 가능합니다. /records/page를 사용하세요."));
+        }
 
         // Entity를 DTO로 변환
-        List<RecordResponse> recordResponses = records.stream()
+        List<RecordResponse> recordResponses = records.getContent().stream()
                 .map(RecordResponse::from)
                 .collect(Collectors.toList());
 
