@@ -5,6 +5,7 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import nocomment.orato.domain.analysis.dto.Status;
 import nocomment.orato.domain.analysis.record.dto.PageResponse;
@@ -74,11 +75,12 @@ public class RecordController {
     )
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "조회 성공"),
+            @ApiResponse(responseCode = "400", description = "페이지 또는 정렬 값 오류"),
             @ApiResponse(responseCode = "401", description = "인증 실패")
     })
     @GetMapping("/records/page")
     public ResponseEntity<PageResponse<RecordResponse>> getRecordListPaged(
-            @ModelAttribute RecordPageRequest request) {
+            @Valid @ModelAttribute RecordPageRequest request) {
         String username = currentUserResolver.getCurrentUsername();
 
         // username으로 필터링하여 페이지네이션 조회
