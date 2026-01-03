@@ -12,7 +12,7 @@ spring:
       hibernate:
         dialect: ${SPRING_JPA_PROPERTIES_HIBERNATE_DIALECT:org.hibernate.dialect.MySQL8Dialect}
     hibernate:
-      ddl-auto: ${SPRING_JPA_HIBERNATE_DDL_AUTO:update}
+      ddl-auto: ${SPRING_JPA_HIBERNATE_DDL_AUTO:validate}
       naming:
         physical-strategy: ${SPRING_JPA_HIBERNATE_NAMING_PHYSICAL_STRATEGY:org.hibernate.boot.model.naming.PhysicalNamingStrategyStandardImpl}
     show-sql: ${SPRING_JPA_SHOW_SQL:true}
