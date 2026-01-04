@@ -10,6 +10,7 @@ import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import nocomment.orato.domain.analysis.UploadFileValidator;
 import nocomment.orato.domain.analysis.dto.Status;
 import nocomment.orato.domain.analysis.video.Dto.RequestDataDto;
 import nocomment.orato.domain.analysis.video.entity.VideoAnalysis;
@@ -22,6 +23,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.io.IOException;
 import java.util.Map;
 import java.util.Optional;
 @RestController
@@ -43,6 +45,7 @@ public class VideoAnalysisController {
                     content = @Content(schema = @Schema(implementation = Status.class))),
             @ApiResponse(responseCode = "400", description = "잘못된 요청 (data 파트 누락 또는 JSON 파싱 오류)"),
             @ApiResponse(responseCode = "401", description = "인증 실패"),
+            @ApiResponse(responseCode = "415", description = "지원하지 않는 영상 파일 형식"),
             @ApiResponse(responseCode = "502", description = "분석 서버의 응답 형식 오류")
     })
     @PostMapping(value = "/analyze/video", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
@@ -51,13 +54,17 @@ public class VideoAnalysisController {
             @RequestPart(value = "file", required = true) MultipartFile file,
             @Parameter(description = "분석 메타데이터 (JSON 형식)", schema = @Schema(implementation = RequestDataDto.class))
             @Valid @RequestPart(value = "data", required = true) RequestDataDto data
-    ) {
+    ) throws IOException {
 
         System.out.println("요청들어옴");
 
         if (file == null || file.isEmpty()) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST)
                     .body(new Status(400, "file 파트가 비어있습니다."));
+        }
+        if (!UploadFileValidator.isSupportedVideo(file)) {
+            return ResponseEntity.status(HttpStatus.UNSUPPORTED_MEDIA_TYPE)
+                    .body(new Status(415, "지원하는 영상 형식: mp4, mov, 3gp, webm, mkv, avi"));
         }
 
         // 3) 사운드 분석 요청
